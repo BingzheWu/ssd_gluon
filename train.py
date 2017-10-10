@@ -26,6 +26,7 @@ def training_targets(default_anchors, class_predicts, labels):
     return box_target, box_mask, cls_target
 
 def train():
+	steps = [100,200]
 	cls_metric = mx.metric.Accuracy()
 	box_metric = mx.metric.MAE()
 	## data load
@@ -55,6 +56,7 @@ def train():
 	batch_size = 40
 	log_interval = 50
 	start_epoch = 0
+	lr = 1e-3
 	for epoch in range(start_epoch, epochs):
 		train_data.reset()
 		cls_metric.reset()
@@ -78,12 +80,18 @@ def train():
 			if (i + 1) % log_interval == 0:
 				name1, val1 = cls_metric.get()
 				name2, val2 = box_metric.get()
+				print 'cls_loss:',nd.sum(loss1)[0].asscalar(),'box_loss:',nd.sum(loss2)[0].asscalar()
 				print('[Epoch %d Batch %d] speed: %f samples/s, training: %s=%f, %s=%f'%(epoch ,i, batch_size/(time.time()-btic), name1, val1, name2, val2))
 		name1, val1 = cls_metric.get()
 		name2, val2 = box_metric.get()
 		print('[Epoch %d] training: %s=%f, %s=%f'%(epoch, name1, val1, name2, val2))
 		print('[Epoch %d] time cost: %f'%(epoch, time.time()-tic))
 		if epoch%5==0:
-			net.save_params('models/ssd_%d.params' % epoch)
+			net.save_params('model/ssd_%d.params' % epoch)
+		if epoch in steps:
+			lr*=0.1
+			trainer = gluon.Trainer(net.collect_params(), 'sgd', {'learning_rate': lr, 'wd': 5e-4})
+
+
 if __name__ == '__main__':
 	train()
