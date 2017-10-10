@@ -27,8 +27,24 @@ def vis_anchor(colors=['blue', 'green', 'red', 'black','magenta']):
 
 def class_predictor(num_anchors, num_classes):
 	return nn.Conv2D(num_anchors*(num_classes+1), 3, padding = 1)
+
+def class_predictor_group(inchannels,num_anchors, num_classes):
+    out = nn.HybridSequential()
+    out.add(nn.Conv2D(in_channels=inchannels,channels=inchannels,kernel_size=3,padding=1,groups=inchannels))
+    out.add(nn.Conv2D(num_anchors*(num_classes+1), 1, padding = 0))
+    return out
+
+
 def box_predictor(num_anchors):
 	return nn.Conv2D(num_anchors*4, 3, padding = 1)
+
+def box_predictor_group(inchannels,num_anchors, num_classes):
+    out = nn.HybridSequential()
+    out.add(nn.Conv2D(in_channels=inchannels,channels=inchannels,kernel_size=3,padding=1,groups=inchannels))
+    out.add(nn.Conv2D(num_anchors*(num_classes+1), 1, padding = 0))
+    return out
+
+
 def down_sample(num_filters):
 	out = nn.HybridSequential()
 	for _ in range(2):
@@ -37,6 +53,18 @@ def down_sample(num_filters):
 		out.add(nn.Activation('relu'))
 	out.add(nn.MaxPool2D(2))
 	return out
+
+def down_sample_group(inchannels,num_filters):
+	out = nn.HybridSequential()
+	for _ in range(2):
+		out.add(nn.Conv2D(in_channels= inchannels,channels=inchannels, kernel_size=3, strides=1, padding=1,groups=inchannels,use_bias=False))
+		out.add(nn.Conv2D(num_filters, 1, strides=1,padding=0,use_bias=False))
+		out.add(nn.BatchNorm(in_channels=num_filters))
+		out.add(nn.Activation('relu'))
+		inchannels = num_filters
+	out.add(nn.MaxPool2D(2))
+	return out
+
 def conv_block(num_filters, conv_shape, strides, padding):
 	out = nn.HybridSequential()
 	out.add(nn.Conv2D(num_filters, conv_shape, strides, padding,))
