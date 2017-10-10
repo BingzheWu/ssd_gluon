@@ -1,5 +1,5 @@
 from loss import SmoothL1Loss, FocalLoss
-from models import ToySSD
+from models import ToySSD,MobileNet
 import mxnet as mx
 import time
 import mxnet.gluon as gluon
@@ -7,10 +7,11 @@ from mxnet import autograd as ag
 from mxnet import nd
 from mxnet.contrib.ndarray import MultiBoxTarget
 import sys
+
 sys.path.append('./dataset')
-from iterator import DetIter
-from wider_face import WiderFace
-from toy import get_iterators
+from dataset.iterator import DetIter
+from dataset.wider_face import WiderFace
+from dataset.toy import get_iterators
 def get_iter(name = 'wider_face'):
 	imdb = WiderFace()
 	train_iter = DetIter(imdb, batch_size = 32, data_shape = 300)
@@ -28,11 +29,13 @@ def train():
 	cls_metric = mx.metric.Accuracy()
 	box_metric = mx.metric.MAE()
 	## data load
+	print 0
 	imdb, train_data = get_iter()
+	print 1
 	#train_data, test_data, class_names, num_class = get_iterators(256, 64)
 	#print(num_class)
 	## env setup
-	ctx = mx.gpu(0)
+	ctx = mx.gpu()
 	try:
 		_ = mx.nd.zeros(1, ctx = ctx)
 		#train_data.reshape(label_shape = (3,5))
@@ -43,9 +46,9 @@ def train():
 	num_class = 1
 	cls_loss = FocalLoss()
 	box_loss = SmoothL1Loss()
-	net = ToySSD(num_class)
+	net = MobileNet(num_class)
 	net.initialize(mx.init.Xavier(magnitude = 2), ctx = ctx)
-	net.load_params('models/ssd_%d.params' % 115, ctx)
+	# net.load_params('models/ssd_%d.params' % 115, ctx)
 	net.collect_params().reset_ctx(ctx)
 	trainer = gluon.Trainer(net.collect_params(), 'sgd', {'learning_rate': 1e-3, 'wd': 5e-4})
 	epochs = 300

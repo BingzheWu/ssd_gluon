@@ -5,8 +5,8 @@ import cv2
 
 class WiderFace(Imdb):
 
-	def __init__(self, data_path = '/home/bingzhe/datasets/wider_face/WIDER_train/images', \
-	 	gt_txt_file = '/home/bingzhe/datasets/wider_face/wider_face_split/wider_face_train_bbx_gt.txt',\
+	def __init__(self, data_path = '/home/zhou/wider_face/images', \
+	 	gt_txt_file = '/home/zhou/wider_face/wider_face_train_bbx_gt.txt',\
 		shuffle = False, is_train = True):
 
 		super(WiderFace, self).__init__('wider_face')
